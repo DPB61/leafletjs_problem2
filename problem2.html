@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!-- <meta http-equiv="refresh" content="60"> This is no good - it resets zoom to the original. Need a way to refresh markers without changing the rest of the map settings -->
+		<title>
+			Problem - no map.fitBounds()
+		</title>
+		<!-- Leaflet -->
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"
+		integrity="sha512-07I2e+7D8p6he1SIM+1twR5TIrhUQn9+I6yjqD53JQjFiMf8EtC93ty0/5vJTZGF8aAocvHYNEDJajGdNx1IsQ=="
+		crossorigin=""/>
+		<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+		<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"
+		integrity="sha512-A7vV8IFfih/D732iSSKi20u/ooOfj/AGehOKq0f4vLT1Zr2Y+RX7C+w8A1gaSasGtRUZpF/NZgzSAu4/Gc41Lg=="
+		crossorigin=""></script>
+		
+		<style type="text/css">
+			#map { height : 850px; }
+		</style>
+	</head>
+	
+	<body>
+
+		<h2>Problem - no map.fitBounds()</h2>
+		<div id="map"></div>
+		
+		<script>
+		
+			var googleMap = L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {attribution: 'google'});
+				
+			var map = L.map('map',{layers: [googleMap]});
+			map.setView([3, 110], 4);
+
+			var baseLayers = {
+				"Google": googleMap
+			};
+			
+			var vesselsFeatureGroup = new L.featureGroup().addTo(map);
+			console.log(vesselsFeatureGroup);
+			
+			function fn_onEachFeature(feature, layer) {
+				layer.bindPopup("ID: " + feature.properties.id + "<br>Name: " + feature.properties.name + "<br>DateTime: " + feature.properties.vdatetime + "<br>Speed: " + feature.properties.speedknots + " knots<br>CMG: " + feature.properties.cmg + "°");
+				layer.bindTooltip(feature.properties.name, {permanent: true, direction: 'right', opacity: 0.6, offset: L.point({x: 10, y: 0})}).openTooltip();
+			}
+
+			$.getJSON('problem2.json', function(JSONdata) {
+
+			var arrayGeoJSON_Vessels = L.geoJson(JSONdata, {
+				pointToLayer: function(feature, latlng) {
+					return L.marker(latlng, {
+					});
+				},
+				onEachFeature: fn_onEachFeature
+				}).addTo(vesselsFeatureGroup); //map);
+			});
+			
+			// https://stackoverflow.com/questions/16845614/zoom-to-fit-all-markers-in-mapbox-or-leaflet - method 1
+			console.log(vesselsFeatureGroup);
+			map.fitBounds(vesselsFeatureGroup.getBounds()); // Uncaught Error: Bounds are not valid. at e.fitBounds (leaflet.js:5)
+	
+			// https://stackoverflow.com/questions/16845614/zoom-to-fit-all-markers-in-mapbox-or-leaflet - method 2
+			console.log(vesselsFeatureGroup);
+			var bounds = L.latLngBounds(vesselsFeatureGroup); // Uncaught Error: Bounds are not valid. at e.fitBounds
+			console.log(bounds);
+			map.fitBounds(bounds);
+					
+		</script>
+	
+	</body>
+	
+</html>
